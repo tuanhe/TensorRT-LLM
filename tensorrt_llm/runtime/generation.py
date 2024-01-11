@@ -98,11 +98,13 @@ def CUASSERT(cuda_ret):
 
 
 def _update_cuda_graph_instance(instance, graph):
-    err = cudart.cudaGraphExecUpdate(instance, graph)
-    if err != cudart.cudaError_t.cudaSuccess:
-        # When updating cuda graph failed, destroy and instantiate one.
-        CUASSERT(cudart.cudaGraphExecDestroy(instance))
-        instance = CUASSERT(cudart.cudaGraphInstantiate(graph, 0))[0]
+    # err = cudart.cudaGraphExecUpdate(instance, graph)
+    # if err != cudart.cudaError_t.cudaSuccess:
+    #     # When updating cuda graph failed, destroy and instantiate one.
+    #     CUASSERT(cudart.cudaGraphExecDestroy(instance))
+    #     instance = CUASSERT(cudart.cudaGraphInstantiate(graph, 0))[0]
+    CUASSERT(cudart.cudaGraphExecDestroy(instance))
+    instance = CUASSERT(cudart.cudaGraphInstantiate(graph, 0))[0]
     return instance
 
 
@@ -1433,7 +1435,8 @@ class GenerationSession(object):
                 self.debug_buffer = ctx_buffer
             if self.cuda_graph_mode:
                 # context mode, clean cuda graph instances
-                self.cuda_graph_instances = [None for _ in range(2)]
+                # self.cuda_graph_instances = [None for _ in range(2)]
+                self.runtime.cuda_graph_instances = [None for _ in range(2)]
 
         # dynamic_decoder currently use torch's current stream, so must let TRT enqueue use same stream here
         stream = torch.cuda.current_stream().cuda_stream

@@ -296,7 +296,7 @@ struct packed_type<half, 8>
 {
     using type = uint4;
 };
-
+#ifdef ENABLE_BF16
 template <>
 struct packed_type<__nv_bfloat16, 2>
 {
@@ -314,7 +314,7 @@ struct packed_type<__nv_bfloat16, 8>
 {
     using type = bf16_8_t;
 };
-
+#endif
 template <>
 struct packed_type<float, 2>
 {

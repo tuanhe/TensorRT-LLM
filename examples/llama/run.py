@@ -156,7 +156,7 @@ def print_output(output_ids, input_lengths, max_output_len, tokenizer,
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('--max_output_len', type=int, required=True)
-    parser.add_argument('--log_level', type=str, default='error')
+    parser.add_argument('--log_level', type=str, default='verbose')
     parser.add_argument('--engine_dir', type=str, default='llama_outputs')
     parser.add_argument('--tokenizer_dir',
                         type=str,

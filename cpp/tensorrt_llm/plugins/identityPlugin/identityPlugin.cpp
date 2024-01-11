@@ -58,8 +58,10 @@ bool IdentityPlugin::supportsFormatCombination(
     {
     case 0:
         return (input.type == DataType::kHALF || input.type == DataType::kFLOAT
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
 #ifdef ENABLE_BF16
                    || input.type == DataType::kBF16
+#endif
 #endif
                    )
             && input.format == nvinfer1::TensorFormat::kLINEAR;
@@ -95,11 +97,13 @@ int IdentityPlugin::enqueue(const nvinfer1::PluginTensorDesc* inputDesc, const n
     {
         count *= sizeof(float);
     }
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
 #ifdef ENABLE_BF16
     else if (inputDesc[0].type == DataType::kBF16)
     {
         count *= sizeof(__nv_bfloat16);
     }
+#endif
 #endif
 
     cudaMemcpyAsync(outputs[0], inputs[0], count, cudaMemcpyDeviceToDevice, stream);

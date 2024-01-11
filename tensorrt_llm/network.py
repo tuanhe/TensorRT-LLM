@@ -69,8 +69,9 @@ class Network(object):
         self._plugin_config = PluginConfig()
         self._module_call_stack = _TrtLlmModuleCallStack()
         self._registered_ndarrays = []
-        self._strongly_typed = trt.INetworkDefinition.get_flag(
-            self._trt_network, trt.NetworkDefinitionCreationFlag.STRONGLY_TYPED)
+        self._strongly_typed = None
+        # self._strongly_typed = trt.INetworkDefinition.get_flag(
+        #     self._trt_network, trt.NetworkDefinitionCreationFlag.STRONGLY_TYPED)
 
         return self
 

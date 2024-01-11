@@ -404,7 +404,7 @@ struct Qk_vec_acum_fp32_<__nv_bfloat162>
 {
     using Type = float2;
 };
-
+#ifdef ENABLE_BF16
 template <>
 struct Qk_vec_acum_fp32_<bf16_4_t>
 {
@@ -416,7 +416,7 @@ struct Qk_vec_acum_fp32_<bf16_8_t>
 {
     using Type = Float8_;
 };
-
+#endif
 #ifdef ENABLE_FP8
 // template<>
 // struct Qk_vec_acum_fp32_<fp8_2_t> {
@@ -494,7 +494,7 @@ struct K_vec_acum_fp32_<__nv_bfloat162>
 {
     using Type = float2;
 };
-
+#ifdef ENABLE_BF16
 template <>
 struct K_vec_acum_fp32_<bf16_4_t>
 {
@@ -506,6 +506,7 @@ struct K_vec_acum_fp32_<bf16_8_t>
 {
     using Type = Float8_;
 };
+#endif
 #ifdef ENABLE_FP8
 // template<>
 // struct K_vec_acum_fp32_<fp8_2_t> {

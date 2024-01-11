@@ -85,7 +85,7 @@ public:
         , xmmaKernel(getXMMAKernelsV2(data_type, sm_))
     {
         TLLM_CHECK_WITH_INFO(
-            (sm == kSM_80 || sm == kSM_86 || sm == kSM_89 || sm == kSM_90), "Unsupported architecture");
+            (sm == kSM_80 || sm == kSM_86 || sm == kSM_87 || sm == kSM_89 || sm == kSM_90), "Unsupported architecture");
         TLLM_CHECK_WITH_INFO((mDataType == DATA_TYPE_FP16 || mDataType == DATA_TYPE_BF16), "Unsupported data type");
 
         params.clear();
@@ -129,7 +129,7 @@ public:
 
         // Hopper: fallback to original fmha_v2 when head_size <= 64 and seq_len <= 256
         const bool isSm90 = (sm == kSM_90);
-        const bool isSm8x = (sm == kSM_86 || sm == kSM_89);
+        const bool isSm8x = (sm == kSM_86 || sm == kSM_87 || sm == kSM_89);
         const bool isSm80 = (sm == kSM_80);
         if (isSm90 && params.d <= 64 && params.s <= 256)
         {
@@ -390,7 +390,7 @@ bool FusedMHARunnerV2::isValid(int s) const
 // static function to check if fmha is supported when building plugins
 bool MHARunner::fmha_supported(const int headSize, const int sm)
 {
-    if (sm == kSM_80 || sm == kSM_86 || sm == kSM_89)
+    if (sm == kSM_80 || sm == kSM_86 || sm == kSM_87 || sm == kSM_89)
     {
         return (headSize == 16 || headSize == 32 || headSize == 40 || headSize == 64 || headSize == 80
             || headSize == 128 || headSize == 160 || headSize == 256);

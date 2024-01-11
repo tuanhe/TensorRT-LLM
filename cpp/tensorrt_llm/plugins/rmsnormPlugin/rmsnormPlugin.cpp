@@ -33,7 +33,11 @@ RmsnormPlugin::RmsnormPlugin(float eps, nvinfer1::DataType type)
     : mEps(eps)
     , mType(type)
 {
-    TLLM_CHECK_WITH_INFO((getSMVersion() >= 80) || (mType != DataType::kBF16),
+    TLLM_CHECK_WITH_INFO((getSMVersion() >= 80) 
+#ifdef ENABLE_BF16
+    || (mType != DataType::kBF16)
+#endif
+    ,
         "Unsupported data type, pre SM 80 GPUs do not support bfloat16");
 }
 
@@ -44,7 +48,11 @@ RmsnormPlugin::RmsnormPlugin(const void* data, size_t length)
     read(d, mEps);
     read(d, mType);
     TLLM_CHECK(d == a + length);
-    TLLM_CHECK_WITH_INFO((getSMVersion() >= 80) || (mType != DataType::kBF16), "Unsupported data type");
+    TLLM_CHECK_WITH_INFO((getSMVersion() >= 80)
+#ifdef ENABLE_BF16
+    || (mType != DataType::kBF16)
+#endif
+    , "Unsupported data type");
 }
 
 // IPluginV2DynamicExt Methods

@@ -833,7 +833,9 @@ void scatterTensor(ITensor& output, ITensor const& input, SizeType beamWidth, Cu
     case nvinfer1::DataType::kFLOAT: invokeScatterTensor<float>(output, input, beamWidth, stream); break;
     case nvinfer1::DataType::kHALF: invokeScatterTensor<half>(output, input, beamWidth, stream); break;
     case nvinfer1::DataType::kINT8: invokeScatterTensor<int8_t>(output, input, beamWidth, stream); break;
+#ifdef ENABLE_FP8
     case nvinfer1::DataType::kFP8: invokeScatterTensor<__nv_fp8_e4m3>(output, input, beamWidth, stream); break;
+#endif
     default: TLLM_CHECK_WITH_INFO(false, "data type not supported");
     }
 }
@@ -870,7 +872,9 @@ void tileTensor(ITensor& output, ITensor const& input, SizeType beamWidth, CudaS
     case nvinfer1::DataType::kFLOAT: invokeTileTensor<float>(output, input, beamWidth, stream); break;
     case nvinfer1::DataType::kHALF: invokeTileTensor<half>(output, input, beamWidth, stream); break;
     case nvinfer1::DataType::kINT8: invokeTileTensor<int8_t>(output, input, beamWidth, stream); break;
+#ifdef ENABLE_FP8
     case nvinfer1::DataType::kFP8: invokeTileTensor<__nv_fp8_e4m3>(output, input, beamWidth, stream); break;
+#endif
     default: TLLM_CHECK_WITH_INFO(false, "data type not supported");
     }
 }
@@ -899,7 +903,9 @@ void tileTensorInplace(ITensor& tensor, SizeType beamWidth, CudaStream const& st
     case nvinfer1::DataType::kFLOAT: invokeTileTensorInPlace<float>(tensor, beamWidth, stream); break;
     case nvinfer1::DataType::kHALF: invokeTileTensorInPlace<half>(tensor, beamWidth, stream); break;
     case nvinfer1::DataType::kINT8: invokeTileTensorInPlace<int8_t>(tensor, beamWidth, stream); break;
+#ifdef ENABLE_FP8    
     case nvinfer1::DataType::kFP8: invokeTileTensorInPlace<__nv_fp8_e4m3>(tensor, beamWidth, stream); break;
+#endif
     default: TLLM_CHECK_WITH_INFO(false, "data type not supported");
     }
 }
@@ -965,12 +971,16 @@ void gatherLastTokenLogits(ITensor& output, ITensor const& input, ITensor const&
     {
     case nvinfer1::DataType::kFLOAT: invokeGatherLastTokenLogits<float>(output, input, lastTokenIds, stream); break;
     case nvinfer1::DataType::kHALF: invokeGatherLastTokenLogits<half>(output, input, lastTokenIds, stream); break;
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
     case nvinfer1::DataType::kBF16:
         invokeGatherLastTokenLogits<__nv_bfloat16>(output, input, lastTokenIds, stream);
         break;
+#endif
+#ifdef ENABLE_FP8
     case nvinfer1::DataType::kFP8:
         invokeGatherLastTokenLogits<__nv_fp8_e4m3>(output, input, lastTokenIds, stream);
         break;
+#endif
     default: TLLM_CHECK_WITH_INFO(false, "data type not supported");
     }
 }

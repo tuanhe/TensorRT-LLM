@@ -25,6 +25,9 @@
 #include <algorithm>
 #include <cstdint>
 #include <type_traits>
+#ifdef ENABLE_BF16
+#include <cuda_bf16.h>
+#endif
 
 using namespace nvinfer1;
 using namespace tensorrt_llm::kernels;
@@ -224,10 +227,13 @@ void fusedQKV_masked_attention_dispatch(Multihead_attention_params<T_MMHA, CROSS
         const FusedQKVMaskedAttentionDispatchParams<T, KVBlockArray>&, cudaStream_t stream);                           \
     template void fusedQKV_masked_attention_dispatch(Multihead_attention_params<T_MMHA, true>&,                        \
         const FusedQKVMaskedAttentionDispatchParams<T, KVBlockArray>&, cudaStream_t stream);
+
 INSTANTIATE_MMHA_DISPATH(float, float)
 INSTANTIATE_MMHA_DISPATH(uint16_t, half)
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9 
 #ifdef ENABLE_BF16
 INSTANTIATE_MMHA_DISPATH(__nv_bfloat16, __nv_bfloat16)
+#endif
 #endif
 #undef INSTANTIATE_MMHA_DISPATH
 
@@ -252,7 +258,13 @@ GPTAttentionPluginCommon::GPTAttentionPluginCommon(int num_heads, int num_kv_hea
     , mRotaryEmbeddingMaxPositions(rotary_embedding_max_positions)
     , mPositionEmbeddingType(position_embedding_type)
     , mEnableContextFMHA(context_fmha_type != ContextFMHAType::DISABLED)
-    , mFMHAForceFP32Acc(context_fmha_type == ContextFMHAType::ENABLED_WITH_FP32_ACC || type == DataType::kBF16)
+    , mFMHAForceFP32Acc(context_fmha_type == ContextFMHAType::ENABLED_WITH_FP32_ACC 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
+#ifdef ENABLE_BF16
+    || type == nvinfer1::DataType::kBF16
+#endif
+#endif
+    )
     , mMaskType(mask_type)
     , mType(type)
     , mMultiBlockMode(multi_block_mode)
@@ -267,9 +279,19 @@ GPTAttentionPluginCommon::GPTAttentionPluginCommon(int num_heads, int num_kv_hea
     , mCrossAttention(cross_attention)
     , mMaxDistance(max_distance)
 {
-    mEnableContextFMHA = mEnableContextFMHA && (mType == DataType::kHALF || mType == DataType::kBF16);
+    mEnableContextFMHA = mEnableContextFMHA && (mType == DataType::kHALF 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
+#ifdef ENABLE_BF16
+|| mType == DataType::kBF16
+#endif
+#endif
+);
     TLLM_CHECK(isRoPE() == (rotary_embedding_dim != 0));
-    TLLM_CHECK_WITH_INFO((tc::getSMVersion() >= 80) || (mType != DataType::kBF16),
+    TLLM_CHECK_WITH_INFO((tc::getSMVersion() >= 80) 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
+    || (mType != nvinfer1::DataType::kBF16)
+#endif
+    ,
         "Unsupported data type, pre SM 80 GPUs do not support bfloat16");
 }
 
@@ -318,7 +340,13 @@ GPTAttentionPluginCommon::GPTAttentionPluginCommon(const void* data, size_t leng
     mKVCacheQuantMode = tc::QuantMode(kvCacheQuantMode);
 
     TLLM_CHECK(d == a + length);
-    TLLM_CHECK_WITH_INFO((tc::getSMVersion() >= 80) || (mType != DataType::kBF16),
+    TLLM_CHECK_WITH_INFO((tc::getSMVersion() >= 80) 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
+#ifdef ENABLE_BF16
+    || (mType != DataType::kBF16)
+#endif
+#endif
+,
         "Unsupported data type, pre SM 80 GPUs do not support bfloat16");
 }
 
@@ -1001,10 +1029,12 @@ int GPTAttentionPluginCommon::initialize() noexcept
         {
             data_type = DATA_TYPE_FP16;
         }
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
         else if (mType == DataType::kBF16)
         {
             data_type = DATA_TYPE_BF16;
         }
+#endif
         else
         {
             TLLM_CHECK_WITH_INFO(false, "GPTAttentionPlugin received wrong data type.");

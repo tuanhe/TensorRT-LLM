@@ -20,7 +20,7 @@ import torch
 from allowed_configs import get_allowed_models
 from bert_benchmark import BERTBenchmark
 from gpt_benchmark import GPTBenchmark
-from mem_monitor import mem_monitor
+# from mem_monitor import mem_monitor
 
 from tensorrt_llm.logger import logger
 
@@ -268,11 +268,11 @@ def main(args):
         torch.cuda.empty_cache()
         latencies = []
 
-        # Launch a subprocess to monitor memory usage
-        q1 = Queue()  # q1 is used for sending signal to subprocess
-        q2 = Queue()  # q2 is used for receiving results from subprocess
-        p = Process(target=mem_monitor, args=(q1, q2))
-        p.start()
+        # # Launch a subprocess to monitor memory usage
+        # q1 = Queue()  # q1 is used for sending signal to subprocess
+        # q2 = Queue()  # q2 is used for receiving results from subprocess
+        # p = Process(target=mem_monitor, args=(q1, q2))
+        # p.start()
 
         iter_idx = 0
         try:
@@ -298,13 +298,13 @@ def main(args):
             )
 
         except Exception as e:
-            p.kill()
+            # p.kill()
             raise e
 
-        q1.put(1)
-        peak_gpu_used = q2.get()
-        p.join()
-
+        # q1.put(1)
+        # peak_gpu_used = q2.get()
+        # p.join()
+        peak_gpu_used = None
         latency = round(sum(latencies) / iter_idx, 3)
         latencies.sort()
         percentile95 = round(latencies[int(iter_idx * 0.95)], 3)

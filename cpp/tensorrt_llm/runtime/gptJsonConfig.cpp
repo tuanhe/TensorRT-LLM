@@ -88,8 +88,10 @@ GptJsonConfig parseJson(InputType&& i)
         dataType = nvinfer1::DataType::kFLOAT;
     else if (!precision.compare("float16"))
         dataType = nvinfer1::DataType::kHALF;
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
     else if (!precision.compare("bfloat16"))
         dataType = nvinfer1::DataType::kBF16;
+#endif
     else
         TLLM_CHECK_WITH_INFO(false, tc::fmtstr("Model data type '%s' not supported", precision.c_str()));
 

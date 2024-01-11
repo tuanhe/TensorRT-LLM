@@ -192,10 +192,16 @@ void RuntimeBuffers::createCustomAllReduceWorkspace(SizeType maxBatchSize, SizeT
     mIpcMemoryHandles.emplace_back(std::make_shared<IpcMemory>(worldConfig, bufferSize));
     mIpcMemoryHandles.emplace_back(std::make_shared<IpcMemory>(worldConfig, IpcMemory::FLAGS_SIZE * sizeof(int32_t)));
     mIpcMemoryHandles.emplace_back(std::make_shared<IpcMemory>(worldConfig, IpcMemory::FLAGS_SIZE * sizeof(int32_t)));
-
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
     commPtrs = manager.cpu(
         ITensor::makeShape({static_cast<SizeType>(mIpcMemoryHandles.size()) * worldConfig.getTensorParallelism()}),
         nvinfer1::DataType::kINT64);
+#else
+    commPtrs = manager.cpu(
+        ITensor::makeShape({static_cast<SizeType>(mIpcMemoryHandles.size()) * worldConfig.getTensorParallelism()}),
+        nvinfer1::DataType::kINT32);
+
+#endif
     const auto commPtrsData = bufferCast<void*>(*commPtrs);
 
     for (size_t memIdx = 0; memIdx < mIpcMemoryHandles.size(); memIdx++)

@@ -173,21 +173,32 @@ set(TRT_LIB nvinfer)
 find_library_create_target(${TRT_LIB} nvinfer SHARED ${TRT_LIB_DIR})
 find_library_create_target(nvuffparser nvparsers SHARED ${TRT_LIB_DIR})
 
-if(${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "11")
+# find_package(TensorRT REQUIRED)
+# set(TensorRT_VERSION ${TensorRT_VERSION_MAJOR}.${TensorRT_VERSION_MINOR}.${TensorRT_VERSION_PATCH})
+set(TensorRT_VERSION 8.6)
+message("TensorRT_VERSION============= is ${TensorRT_VERSION}") 
+if(${TensorRT_VERSION} GREATER 9)
   add_definitions("-DENABLE_BF16")
   message(
     STATUS
-      "CUDAToolkit_VERSION ${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR} is greater or equal than 11.0, enable -DENABLE_BF16 flag"
+      "TensorRT_VERSION ${TensorRT_VERSION} is greater or equal than 9.0, enable -DENABLE_BF16 flag"
   )
 endif()
+# if(${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "11")
+#   add_definitions("-DENABLE_BF16")
+#   message(
+#     STATUS
+#       "CUDAToolkit_VERSION ${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR} is greater or equal than 11.0, enable -DENABLE_BF16 flag"
+#   )
+# endif()
 
-if(${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "11.8")
-  add_definitions("-DENABLE_FP8")
-  message(
-    STATUS
-      "CUDAToolkit_VERSION ${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR} is greater or equal than 11.8, enable -DENABLE_FP8 flag"
-  )
-endif()
+#if(${CUDAToolkit_VERSION} VERSION_GREATER_EQUAL "11.8")
+#  add_definitions("-DENABLE_FP8")
+#  message(
+#    STATUS
+#      "CUDAToolkit_VERSION ${CUDAToolkit_VERSION_MAJOR}.${CUDAToolkit_VERSION_MINOR} is greater or equal than 11.8, enable -DENABLE_FP8 flag"
+#  )
+#endif()
 
 # MPI MPI isn't used until tensorrt_llm/CMakeLists.txt is invoked. However, if
 # it's not called before "CMAKE_CXX_FLAGS" is set, it breaks on Windows for some

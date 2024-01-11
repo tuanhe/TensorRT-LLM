@@ -304,6 +304,13 @@ def parse_arguments():
         default=False,
         help="Activates inflight batching mode of gptAttentionPlugin.")
     parser.add_argument(
+        '--use_lookup_plugin',
+        nargs='?',
+        const=None,
+        default=False,
+        choices=['float16', 'float32', 'bfloat16'],
+        help="Activates the lookup plugin which enables embedding sharing.")
+    parser.add_argument(
         '--paged_kv_cache',
         action="store_true",
         default=False,
@@ -582,6 +589,8 @@ def build_rank_engine(builder: Builder,
         network.plugin_config.set_gemm_plugin(dtype=args.use_gemm_plugin)
     if args.use_rmsnorm_plugin:
         network.plugin_config.set_rmsnorm_plugin(dtype=args.use_rmsnorm_plugin)
+    if args.use_lookup_plugin:
+        network.plugin_config.set_lookup_plugin(dtype=args.dtype)
 
     # Quantization plugins.
     if args.use_smooth_quant:

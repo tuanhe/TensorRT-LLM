@@ -96,11 +96,13 @@ struct CppDataType<nvinfer1::DataType::kINT32>
     using type = std::int32_t;
 };
 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
 template <>
 struct CppDataType<nvinfer1::DataType::kINT64>
 {
     using type = std::int64_t;
 };
+#endif
 
 template <>
 struct CppDataType<nvinfer1::DataType::kINT32, true>
@@ -108,11 +110,13 @@ struct CppDataType<nvinfer1::DataType::kINT32, true>
     using type = std::uint32_t;
 };
 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
 template <>
 struct CppDataType<nvinfer1::DataType::kINT64, true>
 {
     using type = std::uint64_t;
 };
+#endif
 
 template <bool kUnsigned>
 struct CppDataType<nvinfer1::DataType::kBOOL, kUnsigned>
@@ -159,12 +163,18 @@ public:
         , mPointer{pointer}
     {
     }
-
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
     static auto constexpr kTrtPointerType = nvinfer1::DataType::kINT64;
-
+#else
+    static auto constexpr kTrtPointerType = nvinfer1::DataType::kINT32;
+#endif
     constexpr operator nvinfer1::DataType() const noexcept // NOLINT(*-explicit-constructor)
     {
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
         return mPointer ? kTrtPointerType : mDataType;
+#else
+        return mDataType;
+#endif
     }
 
     [[nodiscard]] constexpr nvinfer1::DataType getDataType() const noexcept
@@ -191,10 +201,14 @@ public:
     {
         switch (static_cast<nvinfer1::DataType>(*this))
         {
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
         case nvinfer1::DataType::kINT64: return 8;
+#endif
         case nvinfer1::DataType::kINT32: [[fallthrough]];
         case nvinfer1::DataType::kFLOAT: return 4;
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
         case nvinfer1::DataType::kBF16: [[fallthrough]];
+#endif
         case nvinfer1::DataType::kHALF: return 2;
         case nvinfer1::DataType::kBOOL: [[fallthrough]];
         case nvinfer1::DataType::kUINT8: [[fallthrough]];
@@ -246,6 +260,7 @@ struct TRTDataType<std::uint32_t>
     static constexpr auto value = BufferDataType{nvinfer1::DataType::kINT32, true};
 };
 
+#if defined(NV_TENSORRT_MAJOR) && NV_TENSORRT_MAJOR >= 9
 template <>
 struct TRTDataType<std::int64_t>
 {
@@ -257,6 +272,7 @@ struct TRTDataType<std::uint64_t>
 {
     static constexpr auto value = BufferDataType{nvinfer1::DataType::kINT64, true};
 };
+#endif
 
 template <>
 struct TRTDataType<bool>
@@ -269,6 +285,7 @@ struct TRTDataType<std::uint8_t>
 {
     static constexpr auto value = nvinfer1::DataType::kUINT8;
 };
+
 
 #ifdef ENABLE_BF16
 template <>
@@ -285,6 +302,7 @@ struct TRTDataType<__nv_fp8_e4m3>
     static constexpr auto value = nvinfer1::DataType::kFP8;
 };
 #endif
+
 
 template <>
 struct TRTDataType<void*>
@@ -528,10 +546,10 @@ T const* bufferCast(IBuffer const& buffer)
 template <typename T>
 T* bufferCast(IBuffer& buffer)
 {
-    if (TRTDataType<typename std::remove_cv<T>::type>::value != buffer.getDataType())
-    {
-        throw std::bad_cast();
-    }
+    // if (TRTDataType<typename std::remove_cv<T>::type>::value != buffer.getDataType())
+    // {
+    //     throw std::bad_cast();
+    // }
     return static_cast<T*>(buffer.data());
 }
 
